@@ -22,11 +22,13 @@ class Elementor_Enhanced_Related_Products_Widget extends \Elementor\Widget_Base 
     }
 
     public function get_keywords(): array {
-        return ['related', 'products', 'woocommerce', 'category', 'tag'];
+        return ['related', 'products', 'woocommerce', 'category', 'tag', 'filter'];
     }
 
     protected function register_controls(): void {
-        // SECCIÓN CONTENIDO
+        // ====================
+        // SECTION: CONTENT
+        // ====================
         $this->start_controls_section('section_content', [
             'label' => esc_html__('Product Query', 'elementor-enhanced-related'),
             'tab' => \Elementor\Controls_Manager::TAB_CONTENT,
@@ -37,11 +39,11 @@ class Elementor_Enhanced_Related_Products_Widget extends \Elementor\Widget_Base 
             'type' => \Elementor\Controls_Manager::SELECT,
             'default' => 'both',
             'options' => [
-                'category' => esc_html__('Category Only', 'elementor-enhanced-related'),
-                'tag'      => esc_html__('Tag Only', 'elementor-enhanced-related'),
-                'both'     => esc_html__('Both (AND - WooCommerce Default)', 'elementor-enhanced-related'),
-                'combined' => esc_html__('Combined (OR - Category OR Tag)', 'elementor-enhanced-related'),
-                'manual'   => esc_html__('Manual Selection', 'elementor-enhanced-related'),
+                'category'  => esc_html__('Category Only', 'elementor-enhanced-related'),
+                'tag'       => esc_html__('Tag Only', 'elementor-enhanced-related'),
+                'both'      => esc_html__('Both (AND - WooCommerce Default)', 'elementor-enhanced-related'),
+                'combined'  => esc_html__('Combined (OR - Category OR Tag)', 'elementor-enhanced-related'),
+                'manual'    => esc_html__('Manual Selection', 'elementor-enhanced-related'),
             ],
             'description' => esc_html__('"Both (AND)": Products sharing at least ONE category AND ONE tag. "Combined (OR)": Products sharing at least ONE category OR ONE tag.', 'elementor-enhanced-related'),
         ]);
@@ -84,13 +86,13 @@ class Elementor_Enhanced_Related_Products_Widget extends \Elementor\Widget_Base 
             'type' => \Elementor\Controls_Manager::SELECT,
             'default' => 'rand',
             'options' => [
-                'rand'     => esc_html__('Random', 'elementor-enhanced-related'),
-                'date'     => esc_html__('Date', 'elementor-enhanced-related'),
-                'title'    => esc_html__('Title', 'elementor-enhanced-related'),
-                'price'    => esc_html__('Price', 'elementor-enhanced-related'),
-                'popularity' => esc_html__('Popularity', 'elementor-enhanced-related'),
-                'rating'   => esc_html__('Rating', 'elementor-enhanced-related'),
-                'menu_order' => esc_html__('Menu Order', 'elementor-enhanced-related'),
+                'rand'        => esc_html__('Random', 'elementor-enhanced-related'),
+                'date'        => esc_html__('Date', 'elementor-enhanced-related'),
+                'title'       => esc_html__('Title', 'elementor-enhanced-related'),
+                'price'       => esc_html__('Price', 'elementor-enhanced-related'),
+                'popularity'  => esc_html__('Popularity', 'elementor-enhanced-related'),
+                'rating'      => esc_html__('Rating', 'elementor-enhanced-related'),
+                'menu_order'  => esc_html__('Menu Order', 'elementor-enhanced-related'),
             ],
         ]);
 
@@ -122,8 +124,10 @@ class Elementor_Enhanced_Related_Products_Widget extends \Elementor\Widget_Base 
 
         $this->end_controls_section();
 
-        // SECCIÓN DE ESTILO
-        $this->start_controls_section('section_style', [
+        // ====================
+        // SECTION: STYLE - PRODUCT GRID
+        // ====================
+        $this->start_controls_section('section_grid_style', [
             'label' => esc_html__('Products Grid', 'elementor-enhanced-related'),
             'tab' => \Elementor\Controls_Manager::TAB_STYLE,
         ]);
@@ -131,18 +135,293 @@ class Elementor_Enhanced_Related_Products_Widget extends \Elementor\Widget_Base 
         $this->add_responsive_control('columns_gap', [
             'label' => esc_html__('Columns Gap', 'elementor-enhanced-related'),
             'type' => \Elementor\Controls_Manager::SLIDER,
+            'size_units' => ['px'],
             'range' => ['px' => ['min' => 0, 'max' => 100]],
             'selectors' => [
-                '{{WRAPPER}} .eerp-products-grid' => 'gap: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} ul.products.elementor-grid' => 'gap: {{SIZE}}{{UNIT}};',
             ],
         ]);
 
         $this->add_responsive_control('rows_gap', [
             'label' => esc_html__('Rows Gap', 'elementor-enhanced-related'),
             'type' => \Elementor\Controls_Manager::SLIDER,
+            'size_units' => ['px'],
             'range' => ['px' => ['min' => 0, 'max' => 100]],
             'selectors' => [
-                '{{WRAPPER}} .eerp-products-grid' => 'row-gap: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} ul.products.elementor-grid' => 'row-gap: {{SIZE}}{{UNIT}};',
+            ],
+        ]);
+
+        $this->add_control('product_alignment', [
+            'label' => esc_html__('Content Alignment', 'elementor-enhanced-related'),
+            'type' => \Elementor\Controls_Manager::CHOOSE,
+            'options' => [
+                'left' => [
+                    'title' => esc_html__('Left', 'elementor-enhanced-related'),
+                    'icon' => 'eicon-text-align-left',
+                ],
+                'center' => [
+                    'title' => esc_html__('Center', 'elementor-enhanced-related'),
+                    'icon' => 'eicon-text-align-center',
+                ],
+                'right' => [
+                    'title' => esc_html__('Right', 'elementor-enhanced-related'),
+                    'icon' => 'eicon-text-align-right',
+                ],
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .product' => 'text-align: {{VALUE}};',
+            ],
+        ]);
+
+        $this->end_controls_section();
+
+        // ====================
+        // SECTION: STYLE - HEADING
+        // ====================
+        $this->start_controls_section('section_heading_style', [
+            'label' => esc_html__('Heading', 'elementor-enhanced-related'),
+            'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+            'condition' => ['show_heading' => 'yes'],
+        ]);
+
+        $this->add_control('heading_color', [
+            'label' => esc_html__('Color', 'elementor-enhanced-related'),
+            'type' => \Elementor\Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} section.related.products > h2' => 'color: {{VALUE}};',
+            ],
+        ]);
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            [
+                'name' => 'heading_typography',
+                'selector' => '{{WRAPPER}} section.related.products > h2',
+            ]
+        );
+
+        $this->add_responsive_control('heading_spacing', [
+            'label' => esc_html__('Spacing', 'elementor-enhanced-related'),
+            'type' => \Elementor\Controls_Manager::SLIDER,
+            'size_units' => ['px'],
+            'range' => ['px' => ['min' => 0, 'max' => 100]],
+            'selectors' => [
+                '{{WRAPPER}} section.related.products > h2' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+            ],
+        ]);
+
+        $this->end_controls_section();
+
+        // ====================
+        // SECTION: STYLE - PRODUCT ITEMS
+        // ====================
+        $this->start_controls_section('section_product_style', [
+            'label' => esc_html__('Product Items', 'elementor-enhanced-related'),
+            'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+        ]);
+
+        $this->add_control('product_background', [
+            'label' => esc_html__('Background Color', 'elementor-enhanced-related'),
+            'type' => \Elementor\Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .product' => 'background-color: {{VALUE}};',
+            ],
+        ]);
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Border::get_type(),
+            [
+                'name' => 'product_border',
+                'selector' => '{{WRAPPER}} .product',
+            ]
+        );
+
+        $this->add_responsive_control('product_border_radius', [
+            'label' => esc_html__('Border Radius', 'elementor-enhanced-related'),
+            'type' => \Elementor\Controls_Manager::DIMENSIONS,
+            'size_units' => ['px', '%'],
+            'selectors' => [
+                '{{WRAPPER}} .product' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ]);
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Box_Shadow::get_type(),
+            [
+                'name' => 'product_box_shadow',
+                'selector' => '{{WRAPPER}} .product',
+            ]
+        );
+
+        $this->add_responsive_control('product_padding', [
+            'label' => esc_html__('Padding', 'elementor-enhanced-related'),
+            'type' => \Elementor\Controls_Manager::DIMENSIONS,
+            'size_units' => ['px', '%'],
+            'selectors' => [
+                '{{WRAPPER}} .product' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ]);
+
+        $this->end_controls_section();
+
+        // ====================
+        // SECTION: STYLE - PRODUCT TITLE
+        // ====================
+        $this->start_controls_section('section_title_style', [
+            'label' => esc_html__('Product Title', 'elementor-enhanced-related'),
+            'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+        ]);
+
+        $this->add_control('title_color', [
+            'label' => esc_html__('Color', 'elementor-enhanced-related'),
+            'type' => \Elementor\Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .woocommerce-loop-product__title' => 'color: {{VALUE}};',
+            ],
+        ]);
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            [
+                'name' => 'title_typography',
+                'selector' => '{{WRAPPER}} .woocommerce-loop-product__title',
+            ]
+        );
+
+        $this->add_responsive_control('title_spacing', [
+            'label' => esc_html__('Spacing', 'elementor-enhanced-related'),
+            'type' => \Elementor\Controls_Manager::SLIDER,
+            'size_units' => ['px'],
+            'range' => ['px' => ['min' => 0, 'max' => 50]],
+            'selectors' => [
+                '{{WRAPPER}} .woocommerce-loop-product__title' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+            ],
+        ]);
+
+        $this->end_controls_section();
+
+        // ====================
+        // SECTION: STYLE - PRODUCT PRICE
+        // ====================
+        $this->start_controls_section('section_price_style', [
+            'label' => esc_html__('Product Price', 'elementor-enhanced-related'),
+            'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+        ]);
+
+        $this->add_control('price_color', [
+            'label' => esc_html__('Color', 'elementor-enhanced-related'),
+            'type' => \Elementor\Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .price' => 'color: {{VALUE}};',
+            ],
+        ]);
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            [
+                'name' => 'price_typography',
+                'selector' => '{{WRAPPER}} .price',
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // ====================
+        // SECTION: STYLE - BUTTONS
+        // ====================
+        $this->start_controls_section('section_button_style', [
+            'label' => esc_html__('Buttons', 'elementor-enhanced-related'),
+            'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+        ]);
+
+        $this->start_controls_tabs('button_tabs');
+
+        $this->start_controls_tab('button_normal', [
+            'label' => esc_html__('Normal', 'elementor-enhanced-related'),
+        ]);
+
+        $this->add_control('button_color', [
+            'label' => esc_html__('Text Color', 'elementor-enhanced-related'),
+            'type' => \Elementor\Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .button' => 'color: {{VALUE}};',
+            ],
+        ]);
+
+        $this->add_control('button_background', [
+            'label' => esc_html__('Background Color', 'elementor-enhanced-related'),
+            'type' => \Elementor\Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .button' => 'background-color: {{VALUE}};',
+            ],
+        ]);
+
+        $this->end_controls_tab();
+
+        $this->start_controls_tab('button_hover', [
+            'label' => esc_html__('Hover', 'elementor-enhanced-related'),
+        ]);
+
+        $this->add_control('button_hover_color', [
+            'label' => esc_html__('Text Color', 'elementor-enhanced-related'),
+            'type' => \Elementor\Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .button:hover' => 'color: {{VALUE}};',
+            ],
+        ]);
+
+        $this->add_control('button_hover_background', [
+            'label' => esc_html__('Background Color', 'elementor-enhanced-related'),
+            'type' => \Elementor\Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .button:hover' => 'background-color: {{VALUE}};',
+            ],
+        ]);
+
+        $this->add_control('button_hover_border_color', [
+            'label' => esc_html__('Border Color', 'elementor-enhanced-related'),
+            'type' => \Elementor\Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .button:hover' => 'border-color: {{VALUE}};',
+            ],
+        ]);
+
+        $this->end_controls_tab();
+
+        $this->end_controls_tabs();
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            [
+                'name' => 'button_typography',
+                'selector' => '{{WRAPPER}} .button',
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Border::get_type(),
+            [
+                'name' => 'button_border',
+                'selector' => '{{WRAPPER}} .button',
+            ]
+        );
+
+        $this->add_responsive_control('button_border_radius', [
+            'label' => esc_html__('Border Radius', 'elementor-enhanced-related'),
+            'type' => \Elementor\Controls_Manager::DIMENSIONS,
+            'size_units' => ['px', '%'],
+            'selectors' => [
+                '{{WRAPPER}} .button' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ]);
+
+        $this->add_responsive_control('button_padding', [
+            'label' => esc_html__('Padding', 'elementor-enhanced-related'),
+            'type' => \Elementor\Controls_Manager::DIMENSIONS,
+            'size_units' => ['px', 'em'],
+            'selectors' => [
+                '{{WRAPPER}} .button' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
             ],
         ]);
 
@@ -176,9 +455,9 @@ class Elementor_Enhanced_Related_Products_Widget extends \Elementor\Widget_Base 
         $settings = $this->get_settings_for_display();
         $filter_logic = $settings['filter_logic'] ?? 'both';
         
-        // LÓGICA DE CONSULTA MEJORADA
+        // LOGIC TO BUILD THE PRODUCT QUERY
         if ($filter_logic === 'manual' && !empty($settings['manual_products'])) {
-            // SELECCIÓN MANUAL
+            // MANUAL SELECTION
             $product_ids = array_map('intval', $settings['manual_products']);
             $product_ids = array_diff($product_ids, [$product->get_id()]);
             
@@ -196,7 +475,7 @@ class Elementor_Enhanced_Related_Products_Widget extends \Elementor\Widget_Base 
                 'ignore_sticky_posts' => 1,
             ];
         } else {
-            // LÓGICA AUTOMÁTICA
+            // AUTOMATIC FILTERING LOGIC
             $product_id = $product->get_id();
             $category_ids = wp_get_post_terms($product_id, 'product_cat', ['fields' => 'ids']);
             $tag_ids = wp_get_post_terms($product_id, 'product_tag', ['fields' => 'ids']);
@@ -210,31 +489,33 @@ class Elementor_Enhanced_Related_Products_Widget extends \Elementor\Widget_Base 
                 'order' => $settings['order'] ?? 'DESC',
             ];
 
-            // CONSTRUIR TAX_QUERY SEGÚN LÓGICA
+            // BUILD TAX_QUERY BASED ON LOGIC
+            $tax_query = [];
+            
             switch ($filter_logic) {
                 case 'category':
                     if (!empty($category_ids)) {
-                        $args['tax_query'] = [[
+                        $tax_query[] = [
                             'taxonomy' => 'product_cat',
                             'field' => 'term_id',
                             'terms' => $category_ids,
-                        ]];
+                        ];
                     }
                     break;
                     
                 case 'tag':
                     if (!empty($tag_ids)) {
-                        $args['tax_query'] = [[
+                        $tax_query[] = [
                             'taxonomy' => 'product_tag',
                             'field' => 'term_id',
                             'terms' => $tag_ids,
-                        ]];
+                        ];
                     }
                     break;
                     
                 case 'both':
                     if (!empty($category_ids) && !empty($tag_ids)) {
-                        $args['tax_query'] = [
+                        $tax_query = [
                             'relation' => 'AND',
                             [
                                 'taxonomy' => 'product_cat',
@@ -252,18 +533,18 @@ class Elementor_Enhanced_Related_Products_Widget extends \Elementor\Widget_Base 
                     
                 case 'combined':
                     if (!empty($category_ids) || !empty($tag_ids)) {
-                        $args['tax_query'] = [
+                        $tax_query = [
                             'relation' => 'OR'
                         ];
                         if (!empty($category_ids)) {
-                            $args['tax_query'][] = [
+                            $tax_query[] = [
                                 'taxonomy' => 'product_cat',
                                 'field' => 'term_id',
                                 'terms' => $category_ids,
                             ];
                         }
                         if (!empty($tag_ids)) {
-                            $args['tax_query'][] = [
+                            $tax_query[] = [
                                 'taxonomy' => 'product_tag',
                                 'field' => 'term_id',
                                 'terms' => $tag_ids,
@@ -272,9 +553,13 @@ class Elementor_Enhanced_Related_Products_Widget extends \Elementor\Widget_Base 
                     }
                     break;
             }
+            
+            if (!empty($tax_query)) {
+                $args['tax_query'] = $tax_query;
+            }
         }
 
-        // EJECUTAR CONSULTA
+        // EXECUTE QUERY
         $related_products = new WP_Query($args);
         
         if (!$related_products->have_posts()) {
@@ -284,33 +569,30 @@ class Elementor_Enhanced_Related_Products_Widget extends \Elementor\Widget_Base 
             return;
         }
 
-        // GUARDAR CONFIGURACIÓN DE BUCLE WOOCOMMERCE
-        $original_columns = wc_get_loop_prop('columns', 4);
-        wc_set_loop_prop('columns', $settings['columns'] ?? 4);
+        // RENDER USING THE EXACT SAME STRUCTURE AS ELEMENTOR'S NATIVE WIDGET
+        // 1. Main container: section.related products (matches Elementor's structure)
+        echo '<section class="related products">';
         
-        // RENDERIZAR
-        echo '<div class="eerp-enhanced-related-products">';
-        
+        // 2. Heading (optional)
         if ($settings['show_heading'] === 'yes' && !empty($settings['heading_text'])) {
-            echo '<h2 class="eerp-heading">' . wp_kses_post($settings['heading_text']) . '</h2>';
+            echo '<h2>' . wp_kses_post($settings['heading_text']) . '</h2>';
         }
         
-        echo '<div class="eerp-products-grid" style="display: grid; grid-template-columns: repeat(' . 
-             esc_attr($settings['columns'] ?? 4) . ', 1fr);">';
+        // 3. Products list: ul.products.elementor-grid.columns-X (matches Elementor's structure)
+        $columns = $settings['columns'] ?? 4;
+        echo '<ul class="products elementor-grid columns-' . esc_attr($columns) . '">';
         
-        woocommerce_product_loop_start();
-        
+        // 4. Loop through products using WooCommerce template
         while ($related_products->have_posts()) {
             $related_products->the_post();
             wc_get_template_part('content', 'product');
         }
         
-        woocommerce_product_loop_end();
+        // Close tags
+        echo '</ul>'; // Close .products.elementor-grid
+        echo '</section>'; // Close section.related products
         
-        echo '</div></div>';
-        
-        // RESTAURAR CONFIGURACIÓN
+        // Reset post data
         wp_reset_postdata();
-        wc_set_loop_prop('columns', $original_columns);
     }
 }
