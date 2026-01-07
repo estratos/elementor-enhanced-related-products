@@ -1,0 +1,75 @@
+/**
+ * Elementor Enhanced Related Products - Frontend Styles
+ * Ensures compatibility with Elementor's grid system
+ */
+
+/* Grid system for products - matches Elementor's structure */
+.eerp-elementor-grid-fix ul.products.elementor-grid {
+    display: grid !important;
+    grid-template-columns: repeat(var(--columns, 4), 1fr);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* Responsive columns */
+@media (max-width: 1024px) {
+    .eerp-elementor-grid-fix ul.products.elementor-grid.columns-6,
+    .eerp-elementor-grid-fix ul.products.elementor-grid.columns-5,
+    .eerp-elementor-grid-fix ul.products.elementor-grid.columns-4 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .eerp-elementor-grid-fix ul.products.elementor-grid.columns-6,
+    .eerp-elementor-grid-fix ul.products.elementor-grid.columns-5,
+    .eerp-elementor-grid-fix ul.products.elementor-grid.columns-4,
+    .eerp-elementor-grid-fix ul.products.elementor-grid.columns-3 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .eerp-elementor-grid-fix ul.products.elementor-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Ensure proper product item display */
+.eerp-elementor-grid-fix ul.products.elementor-grid .product {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+}
+
+/* Fix for product images */
+.eerp-elementor-grid-fix ul.products.elementor-grid .product img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Ensure buttons display properly */
+.eerp-elementor-grid-fix ul.products.elementor-grid .button {
+    display: inline-block;
+    margin-top: auto;
+}
+
+/* Compatibility fixes for specific themes */
+body.elementor-page .eerp-elementor-grid-fix ul.products.elementor-grid,
+body.elementor-page .elementor-widget-enhanced_related_products ul.products.elementor-grid {
+    display: grid !important;
+}
+
+/* Fix for theme conflicts */
+.elementor-widget-enhanced_related_products section.related.products {
+    clear: both;
+    float: none;
+    width: 100%;
+}
+
+.elementor-widget-enhanced_related_products ul.products {
+    padding-left: 0;
+}
