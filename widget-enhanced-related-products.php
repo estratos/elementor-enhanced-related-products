@@ -25,6 +25,11 @@ class Elementor_Enhanced_Related_Products_Widget extends \Elementor\Widget_Base 
         return ['related', 'products', 'woocommerce', 'category', 'tag', 'filter'];
     }
 
+    // CLAVE: AÑADIR DEPENDENCIAS DE ESTILOS IGUAL QUE ELEMENTOR PRO
+    public function get_style_depends(): array {
+        return ['widget-woocommerce-products'];
+    }
+
     protected function register_controls(): void {
         // ====================
         // SECTION: CONTENT
@@ -467,13 +472,25 @@ class Elementor_Enhanced_Related_Products_Widget extends \Elementor\Widget_Base 
             }
             
             $args = [
-                'post_type' => 'product',
-                'post_status' => 'publish',
                 'posts_per_page' => $settings['posts_per_page'] ?? 4,
-                'post__in' => $product_ids,
-                'orderby' => 'post__in',
-                'ignore_sticky_posts' => 1,
+                'columns'        => $settings['columns'] ?? 4,
+                'orderby'        => 'post__in',
+                'order'          => $settings['order'] ?? 'DESC',
+                'post__in'       => $product_ids,
             ];
+            
+            // Create fake related products array for WooCommerce template
+            $related_products = [];
+            foreach ($product_ids as $id) {
+                $p = wc_get_product($id);
+                if ($p && $p->is_visible()) {
+                    $related_products[] = $p;
+                }
+            }
+            
+            // Limit to posts_per_page
+            $related_products = array_slice($related_products, 0, $args['posts_per_page']);
+            
         } else {
             // AUTOMATIC FILTERING LOGIC
             $product_id = $product->get_id();
@@ -481,12 +498,10 @@ class Elementor_Enhanced_Related_Products_Widget extends \Elementor\Widget_Base 
             $tag_ids = wp_get_post_terms($product_id, 'product_tag', ['fields' => 'ids']);
             
             $args = [
-                'post_type' => 'product',
-                'post_status' => 'publish',
                 'posts_per_page' => $settings['posts_per_page'] ?? 4,
-                'post__not_in' => [$product_id],
-                'orderby' => $settings['orderby'] ?? 'rand',
-                'order' => $settings['order'] ?? 'DESC',
+                'columns'        => $settings['columns'] ?? 4,
+                'orderby'        => $settings['orderby'] ?? 'rand',
+                'order'          => $settings['order'] ?? 'DESC',
             ];
 
             // BUILD TAX_QUERY BASED ON LOGIC
@@ -554,45 +569,119 @@ class Elementor_Enhanced_Related_Products_Widget extends \Elementor\Widget_Base 
                     break;
             }
             
-            if (!empty($tax_query)) {
-                $args['tax_query'] = $tax_query;
+            // If no tax query for combined logic, show all products
+            if ($filter_logic === 'combined' && empty($tax_query)) {
+                $tax_query = [];
             }
+            
+            // Build the query
+            $query_args = [
+                'post_type'           => 'product',
+                'post_status'         => 'publish',
+                'posts_per_page'      => $args['posts_per_page'],
+                'post__not_in'        => [$product_id],
+                'orderby'             => $args['orderby'],
+                'order'               => $args['order'],
+            ];
+            
+            if (!empty($tax_query)) {
+                $query_args['tax_query'] = $tax_query;
+            }
+            
+            // Get related products
+            $related_query = new WP_Query($query_args);
+            $related_products = array_filter(array_map('wc_get_product', $related_query->posts), 'wc_products_array_filter_visible');
+            
+            // Reorder if needed
+            if ($args['orderby'] === 'rand') {
+                shuffle($related_products);
+            } else {
+                $related_products = wc_products_array_orderby($related_products, $args['orderby'], $args['order']);
+            }
+            
+            // Limit to posts_per_page
+            $related_products = array_slice($related_products, 0, $args['posts_per_page']);
+            
+            // Add to args for WooCommerce template
+            $args['related_products'] = $related_products;
         }
-
-        // EXECUTE QUERY
-        $related_products = new WP_Query($args);
         
-        if (!$related_products->have_posts()) {
+        // NO PRODUCTS FOUND
+        if (empty($related_products)) {
             if (current_user_can('manage_options')) {
                 echo '<p>' . esc_html__('No related products found with current criteria.', 'elementor-enhanced-related') . '</p>';
             }
             return;
         }
-
-        // RENDER USING THE EXACT SAME STRUCTURE AS ELEMENTOR'S NATIVE WIDGET
-        // 1. Main container: section.related products (matches Elementor's structure)
-        echo '<section class="related products">';
         
-        // 2. Heading (optional)
-        if ($settings['show_heading'] === 'yes' && !empty($settings['heading_text'])) {
-            echo '<h2>' . wp_kses_post($settings['heading_text']) . '</h2>';
+        // RENDER USING THE EXACT SAME METHOD AS ELEMENTOR PRO
+        // 1. Start output buffering
+        ob_start();
+        
+        // 2. Call WooCommerce template with our arguments
+        wc_get_template('single-product/related.php', $args);
+        
+        // 3. Get the template output
+        $related_products_html = ob_get_clean();
+        
+        if ($related_products_html) {
+            // 4. Apply the EXACT SAME MODIFICATION as Elementor Pro
+            // This adds the "elementor-grid" class to the products list
+            $related_products_html = str_replace(
+                '<ul class="products', 
+                '<ul class="products elementor-grid', 
+                $related_products_html
+            );
+            
+            // 5. Wrap in section and add heading if needed
+            echo '<section class="related products">';
+            
+            // Add custom heading if enabled
+            if ($settings['show_heading'] === 'yes' && !empty($settings['heading_text'])) {
+                // Replace WooCommerce's default heading with our custom one
+                $default_heading = '<h2>' . esc_html__('Related products', 'woocommerce') . '</h2>';
+                $custom_heading = '<h2>' . wp_kses_post($settings['heading_text']) . '</h2>';
+                
+                // Try to replace the default heading
+                if (strpos($related_products_html, $default_heading) !== false) {
+                    $related_products_html = str_replace($default_heading, $custom_heading, $related_products_html);
+                } else {
+                    // If no default heading found, add ours at the beginning
+                    echo $custom_heading;
+                }
+            } elseif ($settings['show_heading'] !== 'yes') {
+                // Remove the default heading if we don't want any heading
+                $default_heading = '<h2>' . esc_html__('Related products', 'woocommerce') . '</h2>';
+                $related_products_html = str_replace($default_heading, '', $related_products_html);
+            }
+            
+            // 6. Output the modified HTML
+            echo $related_products_html;
+            
+            echo '</section>'; // Close section.related products
         }
-        
-        // 3. Products list: ul.products.elementor-grid.columns-X (matches Elementor's structure)
-        $columns = $settings['columns'] ?? 4;
-        echo '<ul class="products elementor-grid columns-' . esc_attr($columns) . '">';
-        
-        // 4. Loop through products using WooCommerce template
-        while ($related_products->have_posts()) {
-            $related_products->the_post();
-            wc_get_template_part('content', 'product');
-        }
-        
-        // Close tags
-        echo '</ul>'; // Close .products.elementor-grid
-        echo '</section>'; // Close section.related products
         
         // Reset post data
         wp_reset_postdata();
+    }
+    
+    /**
+     * Get the product
+     *
+     * @return \WC_Product|false
+     */
+    private function get_product() {
+        global $product;
+        
+        if (is_a($product, 'WC_Product')) {
+            return $product;
+        }
+        
+        if (is_singular('product')) {
+            $product_id = get_the_ID();
+            return wc_get_product($product_id);
+        }
+        
+        return false;
     }
 }
