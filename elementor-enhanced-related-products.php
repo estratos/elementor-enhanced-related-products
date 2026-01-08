@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Elementor Enhanced Related Products
  * Description: Advanced widget for complete control over related products logic (Category, Tag, Both, Combined, Manual).
- * Version: 1.2.0
+ * Version: 1.3.0
  * Author: Your Name
  * Text Domain: elementor-enhanced-related
  * Requires PHP: 7.4
@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
 }
 
 final class Elementor_Enhanced_Related_Products_Plugin {
-    const VERSION = '1.2.0';
+    const VERSION = '1.3.0';
     const MINIMUM_ELEMENTOR_VERSION = '3.5.0';
     const MINIMUM_PHP_VERSION = '7.4';
 
@@ -61,7 +61,7 @@ final class Elementor_Enhanced_Related_Products_Plugin {
         load_plugin_textdomain('elementor-enhanced-related', false, dirname(plugin_basename(__FILE__)) . '/languages/');
         
         // Load frontend styles conditionally
-        add_action('wp_enqueue_scripts', [$this, 'conditionally_enqueue_styles']);
+        add_action('wp_enqueue_scripts', [$this, 'conditionally_enqueue_styles'], 20);
     }
 
     public function register_widgets($widgets_manager): void {
@@ -70,14 +70,15 @@ final class Elementor_Enhanced_Related_Products_Plugin {
     }
 
     public function conditionally_enqueue_styles(): void {
-        // Only enqueue if widget is present on page
+        // Solo cargar si estamos en una página con Elementor
         if (defined('ELEMENTOR_VERSION') && class_exists('Elementor\Plugin')) {
             $document = \Elementor\Plugin::$instance->documents->get(get_the_ID());
             if ($document && $document->is_built_with_elementor()) {
+                // Cargar estilos compatibles para el grid
                 wp_enqueue_style(
                     'eerp-frontend', 
                     plugin_dir_url(__FILE__) . 'assets/css/frontend.css', 
-                    [], 
+                    ['widget-woocommerce-products'], // Dependencia del CSS de Elementor
                     self::VERSION
                 );
             }
