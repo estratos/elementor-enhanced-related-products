@@ -1,75 +1,66 @@
 /**
  * Elementor Enhanced Related Products - Frontend Styles
- * Ensures compatibility with Elementor's grid system
+ * Compatibility fixes to ensure grid works with Elementor's system
  */
 
-/* Grid system for products - matches Elementor's structure */
-.eerp-elementor-grid-fix ul.products.elementor-grid {
+/* Ensure grid system loads from Elementor's styles */
+.elementor-widget-enhanced_related_products ul.products.elementor-grid {
     display: grid !important;
-    grid-template-columns: repeat(var(--columns, 4), 1fr);
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-/* Responsive columns */
+/* Fallback styles in case Elementor's grid styles don't load */
+.elementor-widget-enhanced_related_products .elementor-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--columns, 4), 1fr);
+    gap: 20px;
+}
+
+/* Responsive columns fallback */
 @media (max-width: 1024px) {
-    .eerp-elementor-grid-fix ul.products.elementor-grid.columns-6,
-    .eerp-elementor-grid-fix ul.products.elementor-grid.columns-5,
-    .eerp-elementor-grid-fix ul.products.elementor-grid.columns-4 {
+    .elementor-widget-enhanced_related_products ul.products.elementor-grid.columns-6,
+    .elementor-widget-enhanced_related_products ul.products.elementor-grid.columns-5,
+    .elementor-widget-enhanced_related_products ul.products.elementor-grid.columns-4 {
         grid-template-columns: repeat(3, 1fr);
     }
 }
 
 @media (max-width: 768px) {
-    .eerp-elementor-grid-fix ul.products.elementor-grid.columns-6,
-    .eerp-elementor-grid-fix ul.products.elementor-grid.columns-5,
-    .eerp-elementor-grid-fix ul.products.elementor-grid.columns-4,
-    .eerp-elementor-grid-fix ul.products.elementor-grid.columns-3 {
+    .elementor-widget-enhanced_related_products ul.products.elementor-grid.columns-6,
+    .elementor-widget-enhanced_related_products ul.products.elementor-grid.columns-5,
+    .elementor-widget-enhanced_related_products ul.products.elementor-grid.columns-4,
+    .elementor-widget-enhanced_related_products ul.products.elementor-grid.columns-3 {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
 @media (max-width: 480px) {
-    .eerp-elementor-grid-fix ul.products.elementor-grid {
+    .elementor-widget-enhanced_related_products ul.products.elementor-grid {
         grid-template-columns: 1fr !important;
     }
 }
 
-/* Ensure proper product item display */
-.eerp-elementor-grid-fix ul.products.elementor-grid .product {
+/* Fix for product items in grid */
+.elementor-widget-enhanced_related_products .product {
     display: flex;
     flex-direction: column;
     height: 100%;
-    position: relative;
 }
 
-/* Fix for product images */
-.eerp-elementor-grid-fix ul.products.elementor-grid .product img {
+/* Ensure images are responsive */
+.elementor-widget-enhanced_related_products .product img {
     width: 100%;
     height: auto;
-    display: block;
-}
-
-/* Ensure buttons display properly */
-.eerp-elementor-grid-fix ul.products.elementor-grid .button {
-    display: inline-block;
-    margin-top: auto;
-}
-
-/* Compatibility fixes for specific themes */
-body.elementor-page .eerp-elementor-grid-fix ul.products.elementor-grid,
-body.elementor-page .elementor-widget-enhanced_related_products ul.products.elementor-grid {
-    display: grid !important;
 }
 
 /* Fix for theme conflicts */
 .elementor-widget-enhanced_related_products section.related.products {
     clear: both;
-    float: none;
-    width: 100%;
 }
 
-.elementor-widget-enhanced_related_products ul.products {
-    padding-left: 0;
+/* Fix for WooCommerce default styles */
+.woocommerce .elementor-widget-enhanced_related_products ul.products.elementor-grid {
+    display: grid !important;
 }
